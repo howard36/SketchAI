@@ -1,0 +1,15 @@
+[tool.pdm]
+
+[project]
+name = ""
+version = ""
+description = ""
+authors = [
+    {name = "Howard Halim", email = "howardhalim@gmail.com"},
+]
+dependencies = [
+    "torch>=1.13.1",
+    "matplotlib>=3.7.0",
+]
+requires-python = ">=3.10"
+license = {text = "MIT"}
