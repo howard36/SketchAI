@@ -1,6 +1,7 @@
 import torch
 from torch import nn
-from main import device
+
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class StrokeRenderer(nn.Module):
     def __init__(self, G, K):
