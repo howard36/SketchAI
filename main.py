@@ -20,12 +20,12 @@ for i in range(GRID_SZ):
     target.append([])
     for j in range(GRID_SZ):
         d = abs(math.sqrt((i-GRID_SZ/2)**2 + (j-GRID_SZ/2)**2) - GRID_SZ/3)
-        target[i].append(min(d/20, 1))
+        target[i].append(min(d/5, 1))
 target = torch.tensor(target)
 
 # grid = torch.ones((GRID_SZ, GRID_SZ, 3), requires_grad=True)
 
-optimizer = optim.Adam([stroke], lr=0.02)
+optimizer = optim.Adam([stroke], lr=0.01)
 
 plt.ion()
 # grid = torch.ones((GRID_SZ, GRID_SZ))
@@ -39,7 +39,10 @@ for i in range(1000):
     # print(grid.sum())
     # grid = torch.stack((grid,grid,grid), dim=2)
     # grid.retain_grad()
-    loss = torch.linalg.norm(grid-target)**2 + 0.001*GRID_SZ*GRID_SZ*torch.linalg.norm(stroke-0.5)**2
+    sim_loss = torch.linalg.norm(grid-target)**2 / GRID_SZ**2
+    far_loss = torch.linalg.norm(stroke-0.5)**2 # penalizes points that are far from the center
+    smooth_loss = torch.linalg.norm(stroke[1:]-stroke[:-1])**2
+    loss = sim_loss + 0.001*far_loss + 0.01*smooth_loss
     # loss = similarity("a sketch of a cat", grid)
     loss.backward()
     optimizer.step()
