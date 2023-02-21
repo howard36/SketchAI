@@ -4,7 +4,7 @@ import torchvision.transforms as transforms
 
 import clip
 
-NUM_AUGS = 4 # More is usually better but slower and more CUDA memory
+NUM_AUGS = 8 # More is usually better but slower and more CUDA memory
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load('ViT-B/32', device, jit=False)
