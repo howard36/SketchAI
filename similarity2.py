@@ -21,14 +21,17 @@ def similarity(prompt, img):
     with torch.no_grad():
         text_features = model.encode_text(text_input)
 
-    img_augs = [augment_trans(img) for _ in range(NUM_AUGS)]
-    im_batch = torch.cat(img_augs)
+    img_augs = []
+    for n in range(NUM_AUGS):
+        img_augs.append(augment_trans(img))
+
+    # img_augs = [augment_trans(img) for _ in range(NUM_AUGS)]
+    im_batch = torch.stack(img_augs, dim=0)
     image_features = model.encode_image(im_batch)
 
-    print(text_features.shape, image_features.shape)
     loss = 0
     for n in range(NUM_AUGS):
-        loss -= torch.cosine_similarity(text_features, image_features[n:n+1], dim=1)
+        loss -= torch.cosine_similarity(text_features, image_features[n], dim=1)
     loss /= NUM_AUGS
 
     return loss
