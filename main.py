@@ -4,7 +4,7 @@ import torch.optim as optim
 import torchvision.transforms as T
 import matplotlib.pyplot as plt
 
-from similarity import similarity
+from similarity2 import similarity
 from render import StrokeRenderer
 
 GRID_SZ = 224
