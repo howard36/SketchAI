@@ -1,3 +1,4 @@
+import torch
 import torchvision
 import torchvision.transforms as transforms
 
@@ -5,6 +6,7 @@ import clip
 
 NUM_AUGS = 4 # More is usually better but slower and more CUDA memory
 
+device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load('ViT-B/32', device, jit=False)
 
 augment_trans = transforms.Compose([
@@ -27,3 +29,6 @@ def similarity(prompt, img):
     loss = 0
     for n in range(NUM_AUGS):
         loss -= torch.cosine_similarity(text_features, image_features[n:n+1], dim=1)
+    loss /= NUM_AUGS
+
+    return loss
