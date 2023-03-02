@@ -5,18 +5,17 @@ from renderer import Renderer
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class BezierRenderer(nn.Module, Renderer):
-    def __init__(self, G, P):
+    def __init__(self, G):
         super(BezierRenderer, self).__init__()
         self.G = G # grid dimensions (G x G)
-        self.P = P # number of pieces to split Bezier curve into
-        assert(P >= 1)
+        self.P = 10 # number of pieces to split Bezier curve into
         idxs = torch.arange(G)
         x_coords, y_coords = torch.meshgrid(idxs, idxs, indexing='ij') # G x G
         self.grid_coords = torch.stack((x_coords, y_coords), dim=2).reshape(1,G,G,2).to(device) # 1 x G x G x 2
-        w1 = [(P-t)**3/P**3 for t in range(P)]
-        w2 = [3*(P-t)*(P-t)*t/P**3 for t in range(P)]
-        w3 = [3*(P-t)*t*t/P**3 for t in range(P)]
-        w4 = [t**3/P**3 for t in range(P)]
+        w1 = [(self.P-t)**3/self.P**3 for t in range(self.P)]
+        w2 = [3*(self.P-t)*(self.P-t)*t/self.P**3 for t in range(self.P)]
+        w3 = [3*(self.P-t)*t*t/self.P**3 for t in range(self.P)]
+        w4 = [t**3/self.P**3 for t in range(self.P)]
         self.weights = torch.tensor([w1, w2, w3, w4]) # 4 x P
     
     def random_params(self):
@@ -56,7 +55,7 @@ class BezierRenderer(nn.Module, Renderer):
             # stroke = torch.clamp(strokes[i], min=0.0, max=1.0) * self.G
             thickness = torch.max(thicknesses[i]*2 + 0.5, torch.Tensor([0.5]).to(device))
             color = torch.clamp(colors[i], min=0.0, max=1.0)
-            grid = torch.max(grid, self.render_stroke(stroke, thickness, color)) # TODO: update this to stamp colors instead
+            grid = torch.max(grid, self.render_stroke(stroke, thickness, color))
         return grid
 
     def curve_to_stroke(self, curve): # curve is n x 4

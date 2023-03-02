@@ -38,7 +38,7 @@ class StraightRenderer(nn.Module, Renderer):
             stroke = torch.clamp(strokes[i], min=0.0, max=1.0) * self.G
             thickness = torch.max(thicknesses[i]*2 + 0.5, torch.Tensor([0.5]).to(device))
             color = torch.clamp(colors[i], min=0.0, max=1.0)
-            grid = torch.max(grid, self.render_stroke(stroke, thickness, color)) # TODO: update this to stamp colors instead
+            grid = torch.max(grid, self.render_stroke(stroke, thickness, color))
         return grid
 
     def render_stroke(self, stroke, t, color):
