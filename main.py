@@ -5,7 +5,8 @@ import torchvision.transforms as T
 import matplotlib.pyplot as plt
 
 from similarity2 import similarity
-from bezier import StrokeRenderer
+# from straight_renderer import StraightRenderer
+from bezier import BezierRenderer
 
 GRID_SZ = 112
 
@@ -21,7 +22,7 @@ for i in range(GRID_SZ):
 target = torch.tensor(target)
 target = target.to(device)
 
-renderer = StrokeRenderer(GRID_SZ, 2, 10)
+renderer = BezierRenderer(GRID_SZ, 10)
 params = renderer.random_params()
 renderer.to(device)
 
