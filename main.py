@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 from similarity2 import similarity
 # from straight_renderer import StraightRenderer
-from bezier import BezierRenderer
+from bezier_renderer import BezierRenderer
 
 GRID_SZ = 112
 
@@ -48,7 +48,7 @@ for i in range(num_total_steps):
     params_on_device = [param.to(device) for param in params]
     grid = renderer(params_on_device) # 3 x G x G
 
-    sim_loss = similarity("orange cat", grid)
+    sim_loss = similarity("red apple", grid)
     custom_loss = renderer.get_custom_loss(params)
     loss = sim_loss + 0.005 * custom_loss
     loss.backward()

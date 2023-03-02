@@ -27,7 +27,13 @@ class BezierRenderer(nn.Module, Renderer):
         return strokes + thicknesses + colors
     
     def get_custom_loss(self, params):
-        return 0
+        n = len(params)
+        control_points = params[:n//3][:][:2]
+        derivs = params[:n//3][:][2:]
+        far_loss = sum(map(lambda stroke: torch.max(torch.linalg.norm(stroke-0.5), torch.Tensor([0.25]).to(device))**2, control_points)) # penalizes points that are far from the center
+        far_loss_derivs = sum(map(lambda stroke: torch.max(torch.linalg.norm(stroke), torch.Tensor([0.25]).to(device))**2, derivs))
+        smooth_loss = sum(map(lambda stroke: torch.linalg.norm(stroke[1:]-stroke[:-1])**2, control_points))
+        return 0.3*(far_loss + far_loss_derivs) + 0.7*smooth_loss
     
     def forward(self, curves):
         grid = torch.ones((self.G, self.G), dtype=torch.float)
@@ -63,7 +69,7 @@ class BezierRenderer(nn.Module, Renderer):
         p4 = pts[1:] # (n-1) x 2
         # print(p1, p2, p3, p4)
         control_pts = torch.stack([p1, p2, p3, p4], dim=2) # (n-1) x 2 x 4
-        sample_pts = torch.matmul(control_pts, self.weights) # (n-1) x 2 x P
+        sample_pts = torch.matmul(control_pts, self.weights.to(device)) # (n-1) x 2 x P
         # print(sample_pts)
         # assert(False)
         sample_pts = torch.permute(sample_pts, (0, 2, 1)) # (n-1) x P x 2
