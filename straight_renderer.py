@@ -16,29 +16,32 @@ class StraightRenderer(nn.Module, Renderer):
         NUM_STROKES = 10
         strokes = [torch.rand((5, 2), dtype=torch.float, requires_grad=True) for _ in range(NUM_STROKES)]
         thicknesses = [torch.rand((1), dtype=torch.float, requires_grad=True) for _ in range(NUM_STROKES)]
-        return strokes + thicknesses
+        colors = [torch.rand((3), dtype=torch.float, requires_grad=True) for _ in range(NUM_STROKES)]
+        return strokes + thicknesses + colors
     
     def get_custom_loss(self, params):
         n = len(params)
-        strokes = params[:n//2]
+        strokes = params[:n//3]
         far_loss = sum(map(lambda stroke: torch.max(torch.linalg.norm(stroke-0.5), torch.Tensor([0.25]).to(device))**2, strokes)) # penalizes points that are far from the center
         smooth_loss = sum(map(lambda stroke: torch.linalg.norm(stroke[1:]-stroke[:-1])**2, strokes))
-        return far_loss + smooth_loss
+        return 0.3*far_loss + 0.7*smooth_loss
     
     def forward(self, params):
         n = len(params)
-        strokes = params[:n//2]
-        thicknesses = params[n//2:]
+        strokes = params[:n//3]
+        thicknesses = params[n//3:2*n//3]
+        colors = params[2*n//3:]
 
-        grid = torch.ones((self.G, self.G), dtype=torch.float)
+        grid = torch.zeros((3, self.G, self.G), dtype=torch.float)
         grid = grid.to(device)
         for i in range(len(strokes)):
             stroke = torch.clamp(strokes[i], min=0.0, max=1.0) * self.G
             thickness = torch.max(thicknesses[i]*2 + 0.5, torch.Tensor([0.5]).to(device))
-            grid = torch.min(grid, self.render_stroke(stroke, thickness))
-        return grid # G x G
+            color = torch.clamp(colors[i], min=0.0, max=1.0)
+            grid = torch.max(grid, self.render_stroke(stroke, thickness, color)) # TODO: update this to stamp colors instead
+        return grid
 
-    def render_stroke(self, stroke, t):
+    def render_stroke(self, stroke, t, color):
         n = len(stroke)
         vs = stroke[:-1].reshape((-1,1,1,2)) # (n-1) x 1 x 1 x 2
         vs = torch.tile(vs, (1, self.G, self.G, 1)) # (n-1) x G x G x 2
@@ -48,8 +51,9 @@ class StraightRenderer(nn.Module, Renderer):
 
         coords = torch.tile(self.grid_coords, (n-1,1,1,1)) # (n-1) x G x G x 2
         distances = self.dist_line_segment(coords, vs, ws) # (n-1) x G x G
-        darkness = distances/(2*t) # (n-1) x G x G
-        return torch.min(darkness, dim=0).values # G x G
+        darknesses = torch.clamp((2*t - distances)/(2*t), min=0.0, max=1.0) # (n-1) x G x G
+        darknesses = torch.max(darknesses, dim=0).values # G x G
+        return torch.stack((darknesses*color[0], darknesses*color[1], darknesses*color[2]), dim=0)
 
     # distance from point p to line segment v--w
     def dist_line_segment(self, p, v, w):

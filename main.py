@@ -47,10 +47,9 @@ axim = ax.imshow(grid.cpu().detach().numpy())
 for i in range(num_total_steps):
     optimizer.zero_grad()
     params_on_device = [param.to(device) for param in params]
-    grid = renderer(params_on_device)
+    grid = renderer(params_on_device) # 3 x G x G
 
-    grid = torch.stack((grid,grid,grid), dim=0)
-    sim_loss = similarity("github logo", grid)
+    sim_loss = similarity("orange cat", grid)
     custom_loss = renderer.get_custom_loss(params)
     loss = sim_loss + 0.005 * custom_loss
     loss.backward()
