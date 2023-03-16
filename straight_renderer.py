@@ -2,7 +2,8 @@ import torch
 from torch import nn
 from renderer import Renderer
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+#device = 'cuda' if torch.cuda.is_available() else 'cpu'
+device = 'cpu' #TODO: DELETE THIS
 
 class StraightRenderer(nn.Module, Renderer):
     def __init__(self, G):
