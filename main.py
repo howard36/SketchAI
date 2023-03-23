@@ -32,7 +32,7 @@ renderer.to(device)
 optimizer = optim.Adam(params, lr=0.02)
 
 num_warmup_steps = 100
-num_total_steps = 300
+num_total_steps = 800
 def warmup(current_step: int):
     if current_step < num_warmup_steps:
         return 0.5 + 0.5 * float(current_step / num_warmup_steps)
@@ -53,7 +53,7 @@ for i in range(num_total_steps):
     params_on_device = [param.to(device) for param in params]
     grid = renderer(params_on_device) # 3 x G x G
 
-    sim_loss = similarity("sunset over the ocean", grid)
+    sim_loss = similarity("disneyland", grid)
     custom_loss = renderer.get_custom_loss(params)
     loss = sim_loss + 0.005 * custom_loss
     loss.backward()
